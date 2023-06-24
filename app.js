@@ -1,36 +1,42 @@
-import API_KEY from './config.js';
-const API_KEY = process.env.API_KEY;
-
-// Get the record button
+// Get the record button... test!
 const recordButton = document.getElementById('recordButton');
 
 // Variable to keep track of whether we're currently recording
 let isRecording = false;
 
+// Variables for recording audio
+let mediaRecorder;
+let audioChunks = [];
+
 // Function to start recording
-function startRecording() {
-  // Create a new WebSocket connection with smart_format and diarize parameters
-  const socket = new WebSocket(`wss://api.deepgram.com/v1/listen?token=${API_KEY}&smart_format=true&diarize=true`);
+async function startRecording() {
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  mediaRecorder = new MediaRecorder(stream);
+  mediaRecorder.start();
 
-  // Start recording audio here and send the audio data as binary WebSocket messages
-  // This will depend on how you're recording audio
-
-  // When a message is received, log the transcription response
-  socket.onmessage = event => {
-    console.log(event.data);
-  };
-
-  // Don't forget to handle errors
-  socket.onerror = error => {
-    console.error(`WebSocket error: ${error}`);
-  };
+  mediaRecorder.addEventListener('dataavailable', event => {
+    audioChunks.push(event.data);
+  });
 }
 
 // Function to stop recording
-function stopRecording() {
-  // Stop recording audio here
-  // Send the 'CloseStream' message
-  socket.send(JSON.stringify({ type: 'CloseStream' }));
+async function stopRecording() {
+  mediaRecorder.stop();
+
+  const audioBlob = new Blob(audioChunks, { type: 'audio/ogg; codecs=opus' });
+  const audioData = await audioBlob.arrayBuffer();
+
+  const response = await fetch('/api/transcribe', {
+    method: 'POST',
+    body: audioData
+  });
+
+  const transcription = await response.text();
+
+  console.log(transcription);
+
+  // Clear audio chunks for next recording
+  audioChunks = [];
 }
 
 // When the record button is clicked...
