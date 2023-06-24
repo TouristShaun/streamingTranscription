@@ -21,23 +21,26 @@ async function startRecording() {
 
 // Function to stop recording
 async function stopRecording() {
-  mediaRecorder.stop();
-
-  const audioBlob = new Blob(audioChunks, { type: 'audio/ogg; codecs=opus' });
-  const audioData = await audioBlob.arrayBuffer();
-
-  const response = await fetch('/api/transcribe', {
-    method: 'POST',
-    body: audioData
-  });
-
-  const transcription = await response.text();
-
-  console.log(transcription);
-
-  // Clear audio chunks for next recording
-  audioChunks = [];
-}
+    mediaRecorder.stop();
+  
+    const audioBlob = new Blob(audioChunks, { type: 'audio/ogg; codecs=opus' });
+    const audioData = await audioBlob.arrayBuffer();
+  
+    const response = await fetch('/api/transcribe', {
+      method: 'POST',
+      body: audioData
+    });
+  
+    const transcription = await response.text();
+  
+    // Update the transcription display
+    document.getElementById('transcription').textContent = transcription;
+  
+    console.log(transcription);
+  
+    // Clear audio chunks for next recording
+    audioChunks = [];
+  }
 
 // When the record button is clicked...
 recordButton.addEventListener('click', () => {
