@@ -1,4 +1,5 @@
 import API_KEY from './config.js';
+const API_KEY = process.env.API_KEY;
 
 // Get the record button
 const recordButton = document.getElementById('recordButton');
