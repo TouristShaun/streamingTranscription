@@ -1,19 +1,28 @@
 import API_KEY from './config.js';
 
-
 // Get the record button
 const recordButton = document.getElementById('recordButton');
-
-// Create a new WebSocket connection with smart_format and diarize parameters
-const socket = new WebSocket('wss://api.deepgram.com/v1/listen?token=${API_KEY}&smart_format=true&diarize=true');
 
 // Variable to keep track of whether we're currently recording
 let isRecording = false;
 
 // Function to start recording
 function startRecording() {
+  // Create a new WebSocket connection with smart_format and diarize parameters
+  const socket = new WebSocket(`wss://api.deepgram.com/v1/listen?token=${API_KEY}&smart_format=true&diarize=true`);
+
   // Start recording audio here and send the audio data as binary WebSocket messages
   // This will depend on how you're recording audio
+
+  // When a message is received, log the transcription response
+  socket.onmessage = event => {
+    console.log(event.data);
+  };
+
+  // Don't forget to handle errors
+  socket.onerror = error => {
+    console.error(`WebSocket error: ${error}`);
+  };
 }
 
 // Function to stop recording
@@ -38,13 +47,3 @@ recordButton.addEventListener('click', () => {
   // Toggle the recording state
   isRecording = !isRecording;
 });
-
-// When a message is received, log the transcription response
-socket.onmessage = event => {
-  console.log(event.data);
-};
-
-// Don't forget to handle errors
-socket.onerror = error => {
-  console.error(`WebSocket error: ${error}`);
-};
